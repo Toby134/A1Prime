@@ -1,5 +1,7 @@
-import 'package:a1primeinventory/backend/get_branches.dart';
-import 'package:a1primeinventory/backend/get_items.dart';
+  import 'package:a1primeinventory/backend/erpGetBranchSpinner.dart';
+import 'package:a1primeinventory/backend/erpGetItem.dart';
+
+import 'package:a1primeinventory/main_page/design.dart';
 import 'package:a1primeinventory/main_page/item_details.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -124,126 +126,120 @@ class _ItemlistPageState extends State<ItemlistPage> {
                   if (!snapshot.hasData) {
                     return Center(child: CircularProgressIndicator());
                   }
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Select Branch",
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: Colors.grey,
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 8.0),
+                    child: DropdownButtonFormField<String>(
+                      value: selectedBranch,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.grey.shade100, // Soft grey background
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
                         ),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                       ),
-                      SizedBox(height: 8),
-                      DropdownButtonFormField<String>(
-                        value: selectedBranch,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                        ),
-                        items: snapshot.data!
-                            .map<DropdownMenuItem<String>>((branch) {
-                          return DropdownMenuItem<String>(
-                            value: branch['BranchName'],
-                            child: Text(branch['BranchName']!),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedBranch = value;
-                            selectedBranchCode = snapshot.data!.firstWhere(
-                                    (branch) => branch['BranchName'] == value)[
-                                'BranchCode'];
-                          });
-                        },
-                        hint: Text("Select a branch"),
-                        dropdownColor: Colors.white,
-                      ),
-                      SizedBox(height: 16),
-                    ],
+                      items: snapshot.data!.map((branch) {
+                        return DropdownMenuItem<String>(
+                          value: branch['BranchName'],
+                          child: Text(branch['BranchName'] ?? ''),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedBranch = value;
+                          selectedBranchCode = snapshot.data!.firstWhere(
+                              (branch) =>
+                                  branch['BranchName'] == value)['BranchCode'];
+                        });
+                      },
+                      hint: Text("Select Branch",
+                          style: GoogleFonts.poppins(fontSize: 14)),
+                      dropdownColor: Colors.white,
+                    ),
                   );
                 },
               ),
-              // Summary Section
-              Text(
-                'Summary',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              SizedBox(height: 10),
-              // Helper function to sum the total units from _allItems
 
-// Summary container in your widget tree:
-              Container(
-                padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                decoration: BoxDecoration(
-                   color: Colors.red[900],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Total Items",
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: Colors.white,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          "${_allItems.length}",
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(width: 20),
-                    Container(
-                      height: 40,
-                      width: 2,   
-                      color: Colors.white,
-                    ),
-                    SizedBox(width: 20),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Total Units",
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: Colors.white,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          "${getTotalUnitsAll()}",
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              // Summary Section
+//               Text(
+//                 'Summary',
+//                 style: GoogleFonts.poppins(
+//                   fontSize: 12,
+//                   fontWeight: FontWeight.w400,
+//                 ),
+//               ),
+//               SizedBox(height: 10),
+//               // Helper function to sum the total units from _allItems
+
+// // Summary container in your widget tree:
+//               Container(
+//                 padding: EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+//                 decoration: BoxDecoration(
+//                   color: Colors.red[900],
+//                   borderRadius: BorderRadius.circular(12),
+//                 ),
+//                 child: Row(
+//                   mainAxisAlignment: MainAxisAlignment.center,
+//                   children: [
+//                     Column(
+//                       crossAxisAlignment: CrossAxisAlignment.center,
+//                       children: [
+//                         Text(
+//                           "Total Items",
+//                           style: GoogleFonts.poppins(
+//                             fontSize: 14,
+//                             color: Colors.white,
+//                           ),
+//                         ),
+//                         SizedBox(height: 4),
+//                         Text(
+//                           "${_allItems.length}",
+//                           style: GoogleFonts.poppins(
+//                             fontSize: 18,
+//                             fontWeight: FontWeight.bold,
+//                             color: Colors.white,
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                     SizedBox(width: 20),
+//                     Container(
+//                       height: 40,
+//                       width: 2,
+//                       color: Colors.white,
+//                     ),
+//                     SizedBox(width: 20),
+//                     Column(
+//                       crossAxisAlignment: CrossAxisAlignment.center,
+//                       children: [
+//                         Text(
+//                           "Total Units",
+//                           style: GoogleFonts.poppins(
+//                             fontSize: 14,
+//                             color: Colors.white,
+//                           ),
+//                         ),
+//                         SizedBox(height: 4),
+//                         Text(
+//                           "${getTotalUnitsAll()}",
+//                           style: GoogleFonts.poppins(
+//                             fontSize: 18,
+//                             fontWeight: FontWeight.bold,
+//                             color: Colors.white,
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                   ],
+//                 ),
+//               ),
 
               SizedBox(height: 16),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+              
                   Text(
                     'Items',
                     style: GoogleFonts.poppins(
@@ -251,8 +247,7 @@ class _ItemlistPageState extends State<ItemlistPage> {
                       fontWeight: FontWeight.w400,
                     ),
                   ),
-                ],
-              ),
+                
               Divider(),
               Expanded(
                 child: _filteredItems.isEmpty

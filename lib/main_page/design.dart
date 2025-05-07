@@ -16,7 +16,7 @@ class ItemDetailsDesign {
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
-                fontSize: isSmallScreen ? 16 : 18,
+                fontSize: isSmallScreen ? 14 : 16,
                 fontWeight: FontWeight.w500,
                 color: Colors.black87,
               ),
@@ -48,49 +48,52 @@ class ItemDetailsDesign {
   );
 }
 
-  static Widget buildInfoRow(
-    String label, 
-    String value, {
-    TextStyle? valueStyle,
-    bool isSmallScreen = false,
-    IconData? icon,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Flexible(
-            child: Row(
-              children: [
-                if (icon != null) Icon(icon, size: 16, color: Colors.black54),
-                if (icon != null) const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: GoogleFonts.poppins(
-                    fontSize: isSmallScreen ? 14 : 16,
-                    color: Colors.black54,
-                  ),
-                  maxLines: 5,
+ static Widget buildInfoRow(
+  String label,
+  String value, {
+  TextStyle? valueStyle,
+  bool isSmallScreen = false,
+  IconData? icon,
+  Color labelColor = Colors.black54,
+  Color valueColor = Colors.black87,
+}) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Flexible(
+          child: Row(
+            children: [
+              if (icon != null) Icon(icon, size: 16, color: labelColor),
+              if (icon != null) const SizedBox(width: 8),
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: isSmallScreen ? 14 : 16,
+                  color: labelColor, // <-- use labelColor here
                 ),
-              ],
-            ),
+                maxLines: 5,
+              ),
+            ],
           ),
-          Flexible(
-            child: Text(
-              value,
-              style: valueStyle ??
-                  GoogleFonts.lato(
-                    fontSize: isSmallScreen ? 14 : 16,
-                    color: Colors.black87,
-                  ),
-              maxLines: 5,
-            ),
+        ),
+        Flexible(
+          child: Text(
+            value,
+            style: valueStyle ??
+                GoogleFonts.lato(
+                  fontSize: isSmallScreen ? 14 : 16,
+                  color: valueColor, // <-- use valueColor here
+                ),
+            maxLines: 5,
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
+
 
   static Widget buildBranchDropdown(
     List<Map<String, String>> branches, {
