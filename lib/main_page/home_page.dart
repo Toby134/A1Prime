@@ -1,4 +1,4 @@
-  import 'package:a1primeinventory/backend/erpGetBranchSpinner.dart';
+import 'package:a1primeinventory/backend/erpGetBranchSpinner.dart';
 import 'package:a1primeinventory/backend/erpGetItem.dart';
 
 import 'package:a1primeinventory/main_page/design.dart';
@@ -20,6 +20,7 @@ class _ItemlistPageState extends State<ItemlistPage> {
   String? selectedBranchCode;
   int _currentPage = 0;
   static const int _itemsPerPage = 4;
+  String _searchMode = 'Text'; // Default mode
 
   @override
   void initState() {
@@ -38,11 +39,21 @@ class _ItemlistPageState extends State<ItemlistPage> {
     setState(() {
       if (query.isEmpty) {
         _filteredItems = _allItems;
-      } else {
+      } else if (_searchMode == 'Text') {
         _filteredItems = _allItems.where((item) {
           return item.itemDesc.toLowerCase().contains(query.toLowerCase()) ||
-              item.itemNo.toLowerCase().contains(query.toLowerCase());
+              item.itemNo.toLowerCase().contains(query.toLowerCase()) ||
+              item.barcode.toLowerCase().contains(query.toLowerCase());
         }).toList();
+      } else if (_searchMode == 'Price') {
+        final price = double.tryParse(query);
+        if (price != null) {
+          _filteredItems = _allItems
+              .where((item) => item.itemPrice.toString().contains(query))
+              .toList();
+        } else {
+          _filteredItems = [];
+        }
       }
     });
   }
@@ -63,7 +74,9 @@ class _ItemlistPageState extends State<ItemlistPage> {
                   controller: _searchController,
                   autofocus: true,
                   decoration: InputDecoration(
-                    hintText: 'Search by item name or number...',
+                    hintText: _searchMode == 'Price'
+                        ? 'Search by price...'
+                        : 'Search by item name, barcode, or number...',
                     border: InputBorder.none,
                     hintStyle:
                         GoogleFonts.poppins(color: Colors.grey, fontSize: 14),
@@ -80,6 +93,25 @@ class _ItemlistPageState extends State<ItemlistPage> {
                   ),
                 ),
           actions: [
+            if (_isSearching)
+            DropdownButton<String>(
+              value: _searchMode,
+              underline: SizedBox(),
+              icon: Icon(Icons.arrow_drop_down, color: Colors.black),
+              items: ['Text', 'Price'].map((mode) {
+                return DropdownMenuItem<String>(
+                  value: mode,
+                  child: Text(mode, style: GoogleFonts.poppins(fontSize: 12)),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _searchMode = value!;
+                  _searchController.clear();
+                  _filterItems('');
+                });
+              },
+            ),
             IconButton(
               icon: Icon(
                 _isSearching ? Icons.close : Icons.search,
@@ -96,16 +128,7 @@ class _ItemlistPageState extends State<ItemlistPage> {
                 });
               },
             ),
-            IconButton(
-              icon: Icon(
-                Icons.qr_code,
-                color: Colors.black,
-                size: 20,
-              ),
-              onPressed: () {
-                // Scanner functionality
-              },
-            ),
+            
           ],
           elevation: 0,
           backgroundColor: Colors.white,
@@ -239,15 +262,14 @@ class _ItemlistPageState extends State<ItemlistPage> {
 
               SizedBox(height: 16),
 
-              
-                  Text(
-                    'Items',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                
+              Text(
+                'Items',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+
               Divider(),
               Expanded(
                 child: _filteredItems.isEmpty
@@ -276,7 +298,7 @@ class _ItemlistPageState extends State<ItemlistPage> {
                                     style: GoogleFonts.poppins(),
                                   ),
                                   subtitle: Text(
-                                    'Item No: ${item.itemNo}\nPrice: ${item.itemPrice} | Qty: ${item.qty}',
+                                    'Item No: ${item.itemNo}\nBarcode: ${item.barcode}\nPrice: ${item.itemPrice} | Qty: ${item.qty}',
                                     style: GoogleFonts.poppins(
                                       color: Colors.grey[600],
                                     ),
