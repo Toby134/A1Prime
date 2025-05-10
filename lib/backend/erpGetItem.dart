@@ -14,7 +14,7 @@ Future<List<Item>> fetchItems() async {
 
   final response = await http.get(Uri.parse('http://$serverIp/A1Prime/erpGetItem.php'));
 
-  print('Response status: ${response.statusCode}');
+   print('Response status: ${response.statusCode}');
   print('Response body: ${response.body}'); 
 
   if (response.statusCode == 200) {
