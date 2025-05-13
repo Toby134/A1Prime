@@ -1,16 +1,32 @@
-# a1primeinventory
+# A1Prime Inventory App
 
-A new Flutter project.
+The **A1Prime Inventory App** is a user-friendly inventory management system built with **Flutter** and powered by a **MySQL** database using **PHP** as the backend. Developed for **3GX Computers and IT Solutions Technoshop**, this app helps businesses efficiently manage, monitor, and update their product inventory in real-time.
 
-## Getting Started
+## 🚀 Features
 
-This project is a starting point for a Flutter application.
+- 📦 Count inventory items
+- 🔍 Search and filter items by category, name, or quantity
+- 🧑‍💼 User login
+- 📶 Works with a local or online MySQL server
 
-A few resources to get you started if this is your first Flutter project:
+## 🛠 Tech Stack
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- **Frontend:** Flutter (Dart)
+- **Backend:** PHP (REST API)
+- **Database:** MySQL (phpMyAdmin)
+- **Tools:** XAMPP, VS Code, Android Studio
 
+## 📂 Recommendations
+- UI/UX Improvement
+- Filter by Category (Computers, Hardwares, etc.)
+- Product Images
+
+## 🙌 Contributors
+- Rafallo, Adrey John
+- Velarde, Thomas Brandon
+
+Thank you, A1Prime!
+--------------------------------------------------------------------------
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
