@@ -1,199 +1,235 @@
 import 'dart:convert';
+import 'package:a1primeinventory/Login/signUp/login.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:google_fonts/google_fonts.dart';
-import 'package:a1primeinventory/Login/signUp/login.dart';
 
-class SignUp extends StatefulWidget {
-  const SignUp({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<SignUp> createState() => _SignUpState();
+  _RegisterScreenState createState() => _RegisterScreenState();
 }
 
-class _SignUpState extends State<SignUp> {
-  final TextEditingController _usernameController = TextEditingController();
+class _RegisterScreenState extends State<RegisterScreen> {
+  final TextEditingController _unameController = TextEditingController();
+  final TextEditingController _pwordController = TextEditingController();
+  final TextEditingController _empNoController = TextEditingController();
+  final TextEditingController _utypeController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _employeeNumberController = TextEditingController();
-  final TextEditingController _userTypeController = TextEditingController();
 
-  bool isLoading = false;
+  bool _obscurePassword = true;
+  bool _isLoading = false;
 
   Future<void> registerUser() async {
-    setState(() {
-      isLoading = true;
-    });
+    if (_unameController.text.isEmpty ||
+        _pwordController.text.isEmpty ||
+        _empNoController.text.isEmpty ||
+        _utypeController.text.isEmpty ||
+        _emailController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("⚠️ Please fill in all fields")),
+      );
+      return;
+    }
 
-    final url = Uri.parse('http://192.168.254.172/A1Prime/php/register.php'); // Ensure this IP is accessible from your device
+    setState(() => _isLoading = true);
+
+    const String url = "http://192.168.86.31/A1PrimeInventory/register.php";
+    Map<String, String> body = {
+      "Uname": _unameController.text.trim(),
+      "Pword": _pwordController.text,
+      "Emp_No": _empNoController.text.trim(),
+      "Utype": _utypeController.text.trim(),
+      "Email": _emailController.text.trim(),
+    };
 
     try {
       final response = await http.post(
-        url,
+        Uri.parse(url),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          'username': _usernameController.text.trim(),
-          'email': _emailController.text.trim(),
-          'password': _passwordController.text.trim(),
-          'employee_number': _employeeNumberController.text.trim(),
-          'user_type': _userTypeController.text.trim(),
-        }),
+        body: jsonEncode(body),
       );
 
-      final data = jsonDecode(response.body);
-
-      if (data['status'] == 'success') {
-        // Successful registration
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text("Success"),
-            content: const Text("Account created successfully."),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // close dialog
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const  Login ()),
-                  );
-                },
-                child: const Text("OK"),
-              ),
-            ],
-          ),
+      final data = jsonDecode(response.body.trim());
+      if (data["status"] == "success") {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("✅ ${data["message"]}")),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginPage()),
         );
       } else {
-        // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['message'] ?? 'Registration failed')),
+          SnackBar(content: Text("❌ ${data["message"]}")),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error connecting to server: $e')),
+        const SnackBar(
+            content: Text("⚠️ Network error: Could not connect to server")),
       );
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('lib/assets/a1prime_logo.png'),
-                const SizedBox(height: 32),
-                const Text("Create Account",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                const Text("Fill in the details to sign up"),
-                const SizedBox(height: 32),
+      backgroundColor: Colors.blueGrey[50],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          bool isWideScreen = constraints.maxWidth > 800;
 
-                TextFormField(
-                  controller: _usernameController,
-                  decoration: InputDecoration(
-                    labelText: 'Username',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+          return SingleChildScrollView(
+            child: Center(
+              child: isWideScreen
+                  ? Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            color: Colors.red[900],
+                            height: MediaQuery.of(context).size.height,
+                            padding: const EdgeInsets.symmetric(vertical: 30),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                  'lib/assets/Laptop.png',
+                                  width: constraints.maxWidth * 0.35,
+                                  height: constraints.maxHeight * 0.4,
+                                  fit: BoxFit.contain,
+                                ),
+                                const SizedBox(height: 10),
+                                const Text(
+                                  'Tabaco - Legazpi - Daet - Sorsogon',
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Expanded(child: _buildForm(isWideScreen)),
+                      ],
+                    )
+                  : Column(
+                      children: [
+                        Container(
+                          
+                          padding: const EdgeInsets.symmetric(vertical: 30),
+                          child: Column(
+                            children: [
+                              Image.asset(
+                                'lib/assets/Laptop.png',
+                                width: constraints.maxWidth * 0.6,
+                                height: 200,
+                                fit: BoxFit.contain,
+                              ),
+                              const SizedBox(height: 10),
+                              const Text(
+                                'Tabaco - Legazpi - Daet - Sorsogon',
+                                style: TextStyle(
+                                    color: Colors.black, fontSize: 16),
+                              ),
+                            ],
+                          ),
+                        ),
+                        _buildForm(isWideScreen),
+                      ],
                     ),
-                    prefixIcon: const Icon(Icons.person),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    prefixIcon: const Icon(Icons.email),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    prefixIcon: const Icon(Icons.lock),
-                  ),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _employeeNumberController,
-                  decoration: InputDecoration(
-                    labelText: 'Employee Number',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    prefixIcon: const Icon(Icons.badge),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _userTypeController,
-                  decoration: InputDecoration(
-                    labelText: 'User Type',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    prefixIcon: const Icon(Icons.people_alt),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: isLoading ? null : registerUser,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : Text('Sign Up',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              color: Colors.white,
-                            )),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const  Login()),
-                    );
-                  },
-                  child: const Text("Already have an account? Login"),
-                ),
-              ],
             ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildForm(bool isWideScreen) {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Text(
+            "User Registration",
+            style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 20),
+          _buildTextField(_unameController, "Username"),
+          _buildTextField(_emailController, "Email",
+              keyboardType: TextInputType.emailAddress),
+          _buildPasswordField(),
+          _buildTextField(_empNoController, "Employee Number"),
+          _buildTextField(_utypeController, "User Type"),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: _isLoading ? null : registerUser,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 50),
+              backgroundColor: Colors.red[900],
+            ),
+            child: _isLoading
+                ? const CircularProgressIndicator(color: Colors.white)
+                : const Text("Sign up",
+                    style: TextStyle(fontSize: 16, color: Colors.white)),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text("Already have an account?"),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => LoginPage()));
+                },
+                child: const Text(
+                  " Log in",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              )
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label,
+      {TextInputType keyboardType = TextInputType.text}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15.0),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(25))),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15.0),
+      child: TextField(
+        controller: _pwordController,
+        obscureText: _obscurePassword,
+        decoration: InputDecoration(
+          labelText: "Password",
+          border: const OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(25))),
+          suffixIcon: IconButton(
+            icon: Icon(
+                _obscurePassword ? Icons.visibility : Icons.visibility_off),
+            onPressed: () =>
+                setState(() => _obscurePassword = !_obscurePassword),
           ),
         ),
       ),

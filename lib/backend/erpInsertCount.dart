@@ -1,19 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> addInventoryCount(
     String itemNo, String braNo, double count, String user) async {
-// final prefs = await SharedPreferences.getInstance();
-//   final serverIp = prefs.getString('server_ip');
 
-  // Check if the server IP is null or empty
-  // if (serverIp == null || serverIp.isEmpty) {
-  //   throw Exception("Server IP not set. Please set the IP address first.");
-  // }
-
-  // Your PHP script URL
-  final String url = 'http://192.168.254.172/A1Prime/erpInsertCount.php';
+  final String url = 'http://192.168.86.31/A1PrimeInventory/erpInsertCount.php';
 
   try {
     // Send the POST request to the PHP backend

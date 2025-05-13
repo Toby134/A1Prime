@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData.light().copyWith(scaffoldBackgroundColor: Colors.white),
 
       debugShowCheckedModeBanner: false,
-      home:  Login(),
+      home:  LoginPage(),
     );
   }
 }
