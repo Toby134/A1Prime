@@ -1,14 +1,24 @@
+
+import 'dart:convert';
+
+import 'package:a1primeinventory/Login/signUp/login.dart';
 import 'package:a1primeinventory/backend/erpGetBranchSpinner.dart';
 import 'package:a1primeinventory/backend/erpGetItem.dart';
-import 'package:a1primeinventory/main_page/design.dart';
 import 'package:a1primeinventory/main_page/item_details.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 
 class ItemlistPage extends StatefulWidget {
+  const ItemlistPage({super.key});
+
   @override
   _ItemlistPageState createState() => _ItemlistPageState();
 }
+
+enum FilterType { priceRange, highToLow, lowToHigh, alphabetical, itemno }
+
+FilterType _selectedFilterType = FilterType.itemno;
 
 class _ItemlistPageState extends State<ItemlistPage> {
   bool _isSearching = false;
@@ -21,7 +31,7 @@ class _ItemlistPageState extends State<ItemlistPage> {
   String? selectedBranch;
   String? selectedBranchCode;
   int _currentPage = 0;
-  static const int _itemsPerPage = 4;
+  static const int _itemsPerPage = 5;
   String _searchMode = 'Text';
 
   @override
@@ -60,14 +70,34 @@ class _ItemlistPageState extends State<ItemlistPage> {
     });
   }
 
-  void _filterByPriceRange() {
+  void _applyFilter() {
     final min = double.tryParse(_minPriceController.text) ?? 0;
     final max = double.tryParse(_maxPriceController.text) ?? double.infinity;
 
     setState(() {
-      _filteredItems = _allItems.where((item) {
-        return item.itemPrice >= min && item.itemPrice <= max;
-      }).toList();
+      switch (_selectedFilterType) {
+        case FilterType.priceRange:
+          _filteredItems = _allItems.where((item) {
+            return item.itemPrice >= min && item.itemPrice <= max;
+          }).toList();
+          break;
+        case FilterType.highToLow:
+          _filteredItems = [..._allItems]
+            ..sort((a, b) => b.itemPrice.compareTo(a.itemPrice));
+          break;
+        case FilterType.lowToHigh:
+          _filteredItems = [..._allItems]
+            ..sort((a, b) => a.itemPrice.compareTo(b.itemPrice));
+          break;
+        case FilterType.alphabetical:
+          _filteredItems = [..._allItems]..sort((a, b) =>
+              a.itemDesc.toLowerCase().compareTo(b.itemDesc.toLowerCase()));
+          break;
+        case FilterType.itemno:
+        _filteredItems = [..._allItems]
+          ..sort((a, b) => a.itemNo.toLowerCase().compareTo(b.itemNo.toLowerCase()));
+        break;
+      }
       _currentPage = 0;
     });
   }
@@ -80,6 +110,8 @@ class _ItemlistPageState extends State<ItemlistPage> {
     final minController = TextEditingController(text: _minPriceController.text);
     final maxController = TextEditingController(text: _maxPriceController.text);
 
+    FilterType tempSelectedFilterType = _selectedFilterType;
+
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -87,135 +119,145 @@ class _ItemlistPageState extends State<ItemlistPage> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header with title and close button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: StatefulBuilder(
+          builder: (context, setState) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'Filter Items',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
-                    ),
+                  // Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Filter Items',
+                          style: GoogleFonts.poppins(
+                              fontSize: 14, fontWeight: FontWeight.w500)),
+                      IconButton(
+                        icon: Icon(Icons.close, size: 20),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
                   ),
-                  IconButton(
-                    icon: Icon(Icons.close, size: 20),
-                    onPressed: () => Navigator.pop(context),
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
+                  SizedBox(height: 16),
 
-              // Price range fields
-              Text(
-                'Price Range',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[700],
-                ),
-              ),
-              SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: minController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Min',
-                        labelStyle: TextStyle(color: Colors.grey[600]),
-                        prefixIcon: Icon(Icons.attach_money, size: 18),
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      ),
+                  // Filter Type Dropdown
+                  DropdownButtonFormField<FilterType>(
+                    value: tempSelectedFilterType,
+                    decoration: InputDecoration(
+                      labelText: 'Filter Type',
+                      border: OutlineInputBorder(),
                     ),
-                  ),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: maxController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Max',
-                        labelStyle: TextStyle(color: Colors.grey[600]),
-                        prefixIcon: Icon(Icons.attach_money, size: 18),
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    items: [
+                      DropdownMenuItem(
+                        value: FilterType.priceRange,
+                        child: Text('Filter by Price Range'),
                       ),
-                    ),
+                      DropdownMenuItem(
+                        value: FilterType.highToLow,
+                        child: Text('Sort by Price: High to Low'),
+                      ),
+                      DropdownMenuItem(
+                        value: FilterType.lowToHigh,
+                        child: Text('Sort by Price: Low to High'),
+                      ),
+                      DropdownMenuItem(
+                        value: FilterType.alphabetical,
+                        child: Text('Sort Alphabetically'),
+                      ),
+                      DropdownMenuItem(
+                        value: FilterType.itemno,
+                        child: Text('Sort by Item Number'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        tempSelectedFilterType = value!;
+                      });
+                    },
                   ),
-                ],
-              ),
-              SizedBox(height: 24),
+                  SizedBox(height: 16),
 
-              // Action buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      minController.clear();
-                      maxController.clear();
-                      setState(() {
-                        _minPriceController.clear();
-                        _maxPriceController.clear();
-                        _filteredItems = _allItems;
-                      });
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      'Clear',
-                      style: GoogleFonts.poppins(
-                        color: Colors.red,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  // Show price inputs only if Price Range selected
+                  if (tempSelectedFilterType == FilterType.priceRange) ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: minController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              labelText: 'Min Price',
+                              prefixIcon: Icon(Icons.php_rounded),
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: TextField(
+                            controller: maxController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              labelText: 'Max Price',
+                              prefixIcon: Icon(Icons.php_rounded),
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _minPriceController.text = minController.text;
-                        _maxPriceController.text = maxController.text;
-                        _filterByPriceRange();
-                      });
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      'Apply',
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w500,
+                    SizedBox(height: 16),
+                  ],
+
+                  // Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          minController.clear();
+                          maxController.clear();
+                          setState(() {
+                            _minPriceController.clear();
+                            _maxPriceController.clear();
+                            _filteredItems = _allItems;
+                            _selectedFilterType = FilterType.priceRange;
+                          });
+                          Navigator.pop(context);
+                        },
+                        child: Text('Clear',
+                            style: GoogleFonts.poppins(color: Colors.red)),
                       ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5),
+                      SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          this.setState(() {
+                            _selectedFilterType = tempSelectedFilterType;
+                            _minPriceController.text = minController.text;
+                            _maxPriceController.text = maxController.text;
+                            _applyFilter();
+                          });
+                          Navigator.pop(context);
+                        },
+                        child: Text('Apply',
+                            style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w500)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5)),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -227,70 +269,79 @@ class _ItemlistPageState extends State<ItemlistPage> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white,
-        appBar: AppBar(
-          title: _isSearching
-              ? TextField(
-                  controller: _searchController,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    hintText: _searchMode == 'Price'
-                        ? 'Search by price...'
-                        : 'Search by item name, barcode, or number...',
-                    border: InputBorder.none,
-                    hintStyle:
-                        GoogleFonts.poppins(color: Colors.grey, fontSize: 14),
-                  ),
-                  style: GoogleFonts.poppins(color: Colors.black, fontSize: 14),
-                  onChanged: _filterItems,
-                )
-              : Text(
-                  'Inventory List',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                ),
-          actions: [
-            if (_isSearching)
-              DropdownButton<String>(
-                value: _searchMode,
-                underline: SizedBox(),
-                icon: Icon(Icons.arrow_drop_down, color: Colors.black),
-                items: ['Text', 'Price'].map((mode) {
-                  return DropdownMenuItem<String>(
-                    value: mode,
-                    child: Text(mode, style: GoogleFonts.poppins(fontSize: 12)),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _searchMode = value!;
-                    _searchController.clear();
-                    _filterItems('');
-                  });
-                },
-              ),
-            IconButton(
-              icon: Icon(
-                _isSearching ? Icons.close : Icons.search,
-                color: Colors.black,
-                size: 20,
-              ),
-              onPressed: () {
-                setState(() {
-                  _isSearching = !_isSearching;
-                  if (!_isSearching) {
-                    _searchController.clear();
-                    _filterItems('');
-                  }
-                });
-              },
-            ),
-          ],
-          elevation: 0,
-          backgroundColor: Colors.white,
+appBar: AppBar(
+  title: _isSearching
+      ? TextField(
+          controller: _searchController,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: _searchMode == 'Price'
+                ? 'Search by price...'
+                : 'Search by item name, barcode, or number...',
+            border: InputBorder.none,
+            hintStyle:
+                GoogleFonts.poppins(color: Colors.grey, fontSize: 14),
+          ),
+          style: GoogleFonts.poppins(color: Colors.black, fontSize: 14),
+          onChanged: _filterItems,
+        )
+      : Text(
+          'Inventory List',
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.black87,
+          ),
         ),
+  actions: [
+    if (_isSearching)
+      DropdownButton<String>(
+        value: _searchMode,
+        underline: SizedBox(),
+        icon: Icon(Icons.arrow_drop_down, color: Colors.black),
+        items: ['Text', 'Price'].map((mode) {
+          return DropdownMenuItem<String>(
+            value: mode,
+            child: Text(mode, style: GoogleFonts.poppins(fontSize: 12)),
+          );
+        }).toList(),
+        onChanged: (value) {
+          setState(() {
+            _searchMode = value!;
+            _searchController.clear();
+            _filterItems('');
+          });
+        },
+      ),
+    IconButton(
+      icon: Icon(
+        _isSearching ? Icons.close : Icons.search,
+        color: Colors.black,
+        size: 20,
+      ),
+      onPressed: () {
+        setState(() {
+          _isSearching = !_isSearching;
+          if (!_isSearching) {
+            _searchController.clear();
+            _filterItems('');
+          }
+        });
+      },
+    ),
+    IconButton(
+      icon: Icon(Icons.logout, color: Colors.black),
+      tooltip: 'Logout',
+      onPressed: () {
+        // Call your logout logic here
+        logout(); // Define this method to handle logout
+      },
+    ),
+  ],
+  elevation: 0,
+  backgroundColor: Colors.white,
+),
+
         body: Padding(
           padding: EdgeInsets.only(
             top: isSmallScreen ? 5.0 : 5.0,
@@ -349,54 +400,59 @@ class _ItemlistPageState extends State<ItemlistPage> {
               // PRICE RANGE INPUT
 
               SizedBox(height: 16),
-            
+
               Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 16.0), // Add horizontal padding
-  child: Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    crossAxisAlignment: CrossAxisAlignment.center,
-    children: [
-      Padding(
-        padding: const EdgeInsets.only(top: 2.0), // Small vertical nudge for perfect alignment
-        child: Text(
-          'Items',
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-      ),
-      Container(
-        height: 28, // Perfect height to match text size
-        child: ElevatedButton.icon(
-          onPressed: () => _showFilterDialog(context),
-          icon: Icon(Icons.filter_alt, size: 14),
-          label: Text(
-            'Filter',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w500, // Slightly bolder for better contrast
-            ),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
-            ),
-            elevation: 0,
-            visualDensity: VisualDensity.compact,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-        ),
-      ),
-    ],
-  ),
-),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0), // Add horizontal padding
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          top:
+                              2.0), // Small vertical nudge for perfect alignment
+                      child: Text(
+                        'Items',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      height: 28, // Perfect height to match text size
+                      child: ElevatedButton.icon(
+                        onPressed: () => _showFilterDialog(context),
+                        icon: Icon(Icons.filter_alt, size: 14),
+                        label: Text(
+                          'Filter',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight
+                                .w500, // Slightly bolder for better contrast
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          elevation: 0,
+                          visualDensity: VisualDensity.compact,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
               Divider(),
-
+              const SizedBox(height: 20),
               Expanded(
                 child: _filteredItems.isEmpty
                     ? Center(child: Text('No items available'))
@@ -503,4 +559,31 @@ class _ItemlistPageState extends State<ItemlistPage> {
       ),
     );
   }
+  Future<void> logout() async {
+    const url = "http://192.168.86.31/A1PrimeInventory/logout.php";
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      final data = jsonDecode(response.body);
+
+      if (data["status"] == "success") {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) =>  LoginPage()),
+          (route) => false,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("❌ Logout failed: ${data['message']}")),
+        );
+      }
+    } catch (e) {
+      print("Logout error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("⚠️ Network error during logout")),
+      );
+    }
+  }
 }
+
+

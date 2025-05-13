@@ -1,18 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 // Existing function to fetch all items from the inventory table
 Future<List<Item>> fetchItems() async {
-  final prefs = await SharedPreferences.getInstance();
-  final serverIp = prefs.getString('server_ip');
-  
-  // Check if the server IP is null or empty
-  if (serverIp == null || serverIp.isEmpty) {
-    throw Exception("Server IP not set. Please set the IP address first.");
-  }
 
-  final response = await http.get(Uri.parse('http://$serverIp/A1Prime/erpGetItem.php'));
+  final response = await http.get(Uri.parse('http://192.168.86.31/A1PrimeInventory/erpGetItem.php'));
 
    print('Response status: ${response.statusCode}');
   print('Response body: ${response.body}'); 
@@ -33,9 +25,7 @@ Future<List<Item>> fetchItems() async {
 
 // fetches the count for recently inserted by the app user
 Future<int> fetchCount(String itemNo, String branchNo) async {
-  final prefs = await SharedPreferences.getInstance();
-  final serverIp = prefs.getString('server_ip');
-  var url = Uri.parse('http://$serverIp/A1Prime/erpGetItem.php');
+  var url = Uri.parse('http://192.168.86.31/A1PrimeInventory/erpGetItem.php');
   var response = await http.get(url);
 
   if (response.statusCode == 200) {
@@ -61,10 +51,8 @@ Future<int> fetchCount(String itemNo, String branchNo) async {
 
 //fetches the count for each inventory, cannot be changed by the app user, only in ERP
 Future<int> fetchInventoryBranchCount(String itemNo, String branchNo) async {
-  final prefs = await SharedPreferences.getInstance();
-  final serverIp = prefs.getString('server_ip');
   final response = await http.get(
-    Uri.parse('http://$serverIp/3GXInventoryExperiment/fetch_inventory_branch.php')
+    Uri.parse('http://192.168.86.31/A1PrimeInventory/fetch_inventory_branch.php')
   );
 
   if (response.statusCode == 200) {
