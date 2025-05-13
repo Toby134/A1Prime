@@ -1,0 +1,81 @@
+Raw Input: 
+Raw Input: 
+Raw Input: 
+Method: POST
+Raw Input: {"Uname":"Adrey John","Pword":"202100177Aj!","Emp_No":"01","Utype":"User"}
+Method: POST
+Raw Input: {"Uname":"Aj","Pword":"202100177Aj!","Emp_No":"02","Utype":"User"}
+Method: POST
+Raw Input: {"Uname":"AdreyJ","Pword":"202100177Aj!","Emp_No":"03","Utype":"User"}
+Method: POST
+Raw Input: {"Uname":"AdreyJ","Pword":"202100177Aj!","Emp_No":"03","Utype":"User"}
+Method: POST
+Raw Input: {"Uname":"AdreyJ","Pword":"202100177Aj!","Emp_No":"03","Utype":"User"}
+Method: POST
+Raw Input: {"Uname":"AdreyJ","Pword":"202100177Aj!","Emp_No":"03","Utype":"User"}
+Method: POST
+Raw Input: {"Uname":"AdreyJ","Pword":"202100177Aj!","Emp_No":"03","Utype":"User"}
+Method: POST
+Raw Input: {"Uname":"AdreyJ","Pword":"202100177Aj!","Emp_No":"03","Utype":"User"}
+Method: POST
+Raw Input: {"Uname":"AdreyJ","Pword":"202100177Aj!","Emp_No":"03","Utype":"User"}
+Method: POST
+Raw Input: {"Uname":"AdreyJ","Pword":"202100177Aj!","Emp_No":"03","Utype":"User"}
+Method: POST
+Raw Input: {"Uname":"AdreyJ","Pword":"202100177Aj!","Emp_No":"03","Utype":"User"}
+Method: POST
+Raw Input: {"Uname":"AdreyJ","Pword":"202100177Aj!","Emp_No":"03","Utype":"User"}
+Method: POST
+Raw Input: {"Uname":"AdreyJ","Pword":"202100177Aj!","Emp_No":"03","Utype":"User"}
+Method: POST
+Raw Input: {"Uname":"Adreyy","Pword":"202100177Aj!","Emp_No":"04","Utype":"User"}
+Method: POST
+Raw Input: 
+Raw Input: 
+Raw Input: {
+  "Uname": "JohnDoe",
+  "Pword": "Password123!",
+  "Emp_No": "001",
+  "Utype": "User"
+}
+
+Decoded Data: Array
+(
+    [Uname] => JohnDoe
+    [Pword] => Password123!
+    [Emp_No] => 001
+    [Utype] => User
+)
+
+Raw Input: {"Uname":"Aeoxx","Pword":"202100177Aj!","Emp_No":"05","Utype":"User"}
+Decoded Data: Array
+(
+    [Uname] => Aeoxx
+    [Pword] => 202100177Aj!
+    [Emp_No] => 05
+    [Utype] => User
+)
+
+Raw Input: {"Uname":"Toby","Pword":"202100177Aj!","Emp_No":"06","Utype":"User"}
+Decoded Data: Array
+(
+    [Uname] => Toby
+    [Pword] => 202100177Aj!
+    [Emp_No] => 06
+    [Utype] => User
+)
+
+Method: POST
+Raw Input: {
+  "Uname": "Aeoxx",
+  "Pword": "202100177Aj!"
+}
+
+
+Method: POST
+Raw Input: {
+  "Uname": "Aeoxx",
+  "Pword": "202100177Aj!"
+}
+
+
