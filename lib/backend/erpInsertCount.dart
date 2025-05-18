@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> addInventoryCount(
     String itemNo, String braNo, double count, String user) async {
-
-  final String url = 'http://192.168.86.31/A1PrimeInventory/erpInsertCount.php';
+final prefs = await SharedPreferences.getInstance();
+  final serverIp = prefs.getString('server_ip');
+  final String url = 'http://$serverIp/A1PrimeInventory/erpInsertCount.php';
 
   try {
     // Send the POST request to the PHP backend

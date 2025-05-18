@@ -560,7 +560,7 @@ appBar: AppBar(
     );
   }
   Future<void> logout() async {
-    const url = "http://192.168.86.31/A1PrimeInventory/logout.php";
+    const url = "http://192.168.100.180/A1PrimeInventory/logout.php";
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -569,7 +569,7 @@ appBar: AppBar(
       if (data["status"] == "success") {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) =>  LoginPage()),
+          MaterialPageRoute(builder: (context) =>  Login()),
           (route) => false,
         );
       } else {
